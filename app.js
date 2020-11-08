@@ -33,7 +33,33 @@ function addTeamMember() {
           employeeQuestion.name = "school";
         }
 
-        console.log(response);
+        inquirer.prompt([
+          {
+            type: "input",
+            message: "Enter the team member's name: ",
+            name: "name",
+          },
+          {
+            type: "input",
+            message: "Enter the team member's id: ",
+            name: "id",
+          },
+          {
+            type: "input",
+            message: "Enter the team member's email address: ",
+            name: "email",
+          },
+          employeeQuestion,
+          {
+            type: "list",
+            message: "Would you like to add another team member?",
+            name: "addMembers",
+            choices: ["Yes", "No"],
+            default: "Yes",
+          },
+        ]).then((data) => {
+            console.log(data);         
+          });
       });  
   }
 
