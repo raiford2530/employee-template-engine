@@ -13,6 +13,30 @@ const render = require("./lib/htmlRenderer");
 //Array for containing all employees
 const employees = [];
 
+function addTeamMember() {
+    inquirer.prompt([
+        {
+          type: "list",
+          message: "What is the role of this team member?",
+          name: "role",
+          choices: ["Engineer", "Intern"],
+        },
+      ])
+      .then((response) => {
+        let employeeQuestion = { type: "input" };
+  
+        if (response.role === "Engineer") {
+          employeeQuestion.message = "Enter the team member's GitHub username: ";
+          employeeQuestion.name = "github";
+        } else {
+          employeeQuestion.message = "Enter the team member's school: ";
+          employeeQuestion.name = "school";
+        }
+
+        console.log(response);
+      });  
+  }
+
 console.log();
 console.log("==============================");
 console.log("Employee Template Enigine");
@@ -53,6 +77,8 @@ inquirer
     const manager = new Manager(questions.name, questions.id, questions.email, questions.officeNumber);
     employees.push(manager);
 
-    console.log(employees);
+    if (questions.addMembers === "Yes") {
+        addTeamMember();
+      }
   });
 
