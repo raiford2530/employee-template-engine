@@ -22,15 +22,15 @@ function addTeamMember() {
           choices: ["Engineer", "Intern"],
         },
       ])
-      .then((response) => {
-        let employeeQuestion = { type: "input" };
+      .then((roleData) => {
+        let roleQuestion = { type: "input" };
   
-        if (response.role === "Engineer") {
-          employeeQuestion.message = "Enter the team member's GitHub username: ";
-          employeeQuestion.name = "github";
+        if (roleData.role === "Engineer") {
+            roleQuestion.message = "Enter the team member's GitHub username: ";
+            roleQuestion.name = "github";
         } else {
-          employeeQuestion.message = "Enter the team member's school: ";
-          employeeQuestion.name = "school";
+            roleQuestion.message = "Enter the team member's school: ";
+            roleQuestion.name = "school";
         }
 
         inquirer.prompt([
@@ -49,7 +49,7 @@ function addTeamMember() {
             message: "Enter the team member's email address: ",
             name: "email",
           },
-          employeeQuestion,
+          roleQuestion,
           {
             type: "list",
             message: "Would you like to add another team member?",
@@ -57,8 +57,16 @@ function addTeamMember() {
             choices: ["Yes", "No"],
             default: "Yes",
           },
-        ]).then((data) => {
-            console.log(data);         
+        ]).then((teamMemberData) => {
+            if (roleData.role === "Engineer") {
+                const engineer = new Engineer(teamMemberData.name, teamMemberData.id, teamMemberData.email, teamMemberData.github);
+                employees.push(engineer);
+              } else {
+                const intern = new Intern(teamMemberData.name, teamMemberData.id, teamMemberData.email, teamMemberData.school);
+                employees.push(intern);
+              } 
+              
+              console.log(employees);
           });
       });  
   }
