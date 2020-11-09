@@ -66,7 +66,15 @@ function addTeamMember() {
                 employees.push(intern);
               } 
               
-              console.log(employees);
+              if (teamMemberData.addMembers === "Yes") {
+                addTeamMember();
+              }else{
+                  fs.writeFile(outputPath, render(employees), "utf8", err => {
+                    if(err) throw err;
+
+                    console.log("Team template successfully created");
+                  });
+              }
           });
       });  
   }
