@@ -6,6 +6,15 @@ const path = require("path");
 const fs = require("fs");
 
 const OUTPUT_DIR = path.resolve(__dirname, "output");
+
+fs.access(OUTPUT_DIR, err =>{
+  if(err && err.code === "ENOENT"){
+    fs.mkdir(OUTPUT_DIR, err => {
+      if(err) throw err;
+    })
+  }
+})
+
 const outputPath = path.join(OUTPUT_DIR, "team.html");
 
 const render = require("./lib/htmlRenderer");
@@ -68,7 +77,7 @@ function addTeamMember() {
               
               if (teamMemberData.addMembers === "Yes") {
                 addTeamMember();
-              }else{
+              }else{                
                   fs.writeFile(outputPath, render(employees), "utf8", err => {
                     if(err) throw err;
 
