@@ -22,6 +22,7 @@ const render = require("./lib/htmlRenderer");
 //Array for containing all employees
 const employees = [];
 
+//Initialize and start program
 function init() {
   console.log();
   console.log("==============================");
@@ -29,6 +30,8 @@ function init() {
   console.log("==============================");
   console.log();
 
+  //Prompt for manager questions
+  //Create manager object and add to employees
   inquirer.prompt(getQuestions("Manager")).then((questions) => {
     const manager = new Manager(
       questions.name,
@@ -39,6 +42,7 @@ function init() {
 
     employees.push(manager);
 
+    //Add another team member if yes or create team file if no
     if (questions.addMembers === "Yes") {
       addTeamMember();
     }else{
@@ -48,6 +52,7 @@ function init() {
 }
 
 function addTeamMember() {
+  //Prompt for role of team member
   inquirer
     .prompt([
       {
@@ -58,6 +63,8 @@ function addTeamMember() {
       },
     ])
     .then((roleData) => {
+      //Prompt for team member questions
+      //Create engineer or intern object depending on role type
       inquirer.prompt(getQuestions(roleData.role)).then((teamMemberData) => {
         if (roleData.role === "Engineer") {
           const engineer = new Engineer(
@@ -87,6 +94,7 @@ function addTeamMember() {
     });
 }
 
+//Get questions based on role type
 function getQuestions(type) {
   let nameQuestion = `Enter the ${type === "Manager" ? "manager's" : "team member's"} name: `;
   let idQuestion = `Enter the ${type === "Manager" ? "manager's" : "team member's"} id: `;
@@ -132,6 +140,7 @@ function getQuestions(type) {
   return questions;
 }
 
+//Write employees to team file
 function writeTeamFile(employeesToWrite){
   fs.writeFile(outputPath, render(employeesToWrite), "utf8", (err) => {
     if (err) throw err;
