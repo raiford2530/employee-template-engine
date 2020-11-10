@@ -7,129 +7,137 @@ const fs = require("fs");
 
 const OUTPUT_DIR = path.resolve(__dirname, "output");
 
-fs.access(OUTPUT_DIR, err =>{
-  if(err && err.code === "ENOENT"){
-    fs.mkdir(OUTPUT_DIR, err => {
-      if(err) throw err;
-    })
+//Check to see if output directory exists and if not then create it
+fs.access(OUTPUT_DIR, (err) => {
+  if (err && err.code === "ENOENT") {
+    fs.mkdir(OUTPUT_DIR, (err) => {
+      if (err) throw err;
+    });
   }
-})
+});
 
 const outputPath = path.join(OUTPUT_DIR, "team.html");
-
 const render = require("./lib/htmlRenderer");
 
 //Array for containing all employees
 const employees = [];
 
+function init() {
+  console.log();
+  console.log("==============================");
+  console.log("Employee Template Enigine");
+  console.log("==============================");
+  console.log();
+
+  inquirer.prompt(getQuestions("Manager")).then((questions) => {
+    const manager = new Manager(
+      questions.name,
+      questions.id,
+      questions.email,
+      questions.officeNumber
+    );
+
+    employees.push(manager);
+
+    if (questions.addMembers === "Yes") {
+      addTeamMember();
+    }else{
+      writeTeamFile(employees);
+    }
+  });
+}
+
 function addTeamMember() {
-    inquirer.prompt([
-        {
-          type: "list",
-          message: "What is the role of this team member?",
-          name: "role",
-          choices: ["Engineer", "Intern"],
-        },
-      ])
-      .then((roleData) => {
-        let roleQuestion = { type: "input" };
-  
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        message: "What is the role of this team member?",
+        name: "role",
+        choices: ["Engineer", "Intern"],
+      },
+    ])
+    .then((roleData) => {
+      inquirer.prompt(getQuestions(roleData.role)).then((teamMemberData) => {
         if (roleData.role === "Engineer") {
-            roleQuestion.message = "Enter the team member's GitHub username: ";
-            roleQuestion.name = "github";
+          const engineer = new Engineer(
+            teamMemberData.name,
+            teamMemberData.id,
+            teamMemberData.email,
+            teamMemberData.github
+          );
+
+          employees.push(engineer);
         } else {
-            roleQuestion.message = "Enter the team member's school: ";
-            roleQuestion.name = "school";
+          const intern = new Intern(
+            teamMemberData.name,
+            teamMemberData.id,
+            teamMemberData.email,
+            teamMemberData.school
+          );
+          employees.push(intern);
         }
 
-        inquirer.prompt([
-          {
-            type: "input",
-            message: "Enter the team member's name: ",
-            name: "name",
-          },
-          {
-            type: "input",
-            message: "Enter the team member's id: ",
-            name: "id",
-          },
-          {
-            type: "input",
-            message: "Enter the team member's email address: ",
-            name: "email",
-          },
-          roleQuestion,
-          {
-            type: "list",
-            message: "Would you like to add another team member?",
-            name: "addMembers",
-            choices: ["Yes", "No"],
-            default: "Yes",
-          },
-        ]).then((teamMemberData) => {
-            if (roleData.role === "Engineer") {
-                const engineer = new Engineer(teamMemberData.name, teamMemberData.id, teamMemberData.email, teamMemberData.github);
-                employees.push(engineer);
-              } else {
-                const intern = new Intern(teamMemberData.name, teamMemberData.id, teamMemberData.email, teamMemberData.school);
-                employees.push(intern);
-              } 
-              
-              if (teamMemberData.addMembers === "Yes") {
-                addTeamMember();
-              }else{                
-                  fs.writeFile(outputPath, render(employees), "utf8", err => {
-                    if(err) throw err;
+        if (teamMemberData.addMembers === "Yes") {
+          addTeamMember();
+        } else {
+            writeTeamFile(employees);
+        }
+      });
+    });
+}
 
-                    console.log("Team template successfully created");
-                  });
-              }
-          });
-      });  
-  }
+function getQuestions(type) {
+  let nameQuestion = `Enter the ${type === "Manager" ? "manager's" : "team member's"} name: `;
+  let idQuestion = `Enter the ${type === "Manager" ? "manager's" : "team member's"} id: `;
+  let emailQuestion = `Enter the ${type === "Manager" ? "manager's" : "team member's"} email address: `;
+  let officeNumberQuestion = "Enter the manager's office number: ";
+  let schoolQuestion = `Enter the team member's school: `;
+  let gitHubQuestion = `Enter the team member's GitHub username: `;
 
-console.log();
-console.log("==============================");
-console.log("Employee Template Enigine");
-console.log("==============================");
-console.log();
-
-inquirer
-  .prompt([
+  const questions = [
     {
       type: "input",
-      message: "Enter the manager's name: ",
+      message: nameQuestion,
       name: "name",
     },
     {
       type: "input",
-      message: "Enter the manager's id: ",
+      message: idQuestion,
       name: "id",
     },
     {
       type: "input",
-      message: "Enter the manager's email address: ",
+      message: emailQuestion,
       name: "email",
     },
-    {
-      type: "input",
-      message: "Enter the manager's office number: ",
-      name: "officeNumber",
-    },
-    {
-      type: "list",
-      message: "Would you like to add another team member?",
-      name: "addMembers",
-      choices: ["Yes", "No"],
-      default: "Yes",
-    },
-  ])
-  .then((questions) => {
-    const manager = new Manager(questions.name, questions.id, questions.email, questions.officeNumber);
-    employees.push(manager);
+  ];
 
-    if (questions.addMembers === "Yes") {
-        addTeamMember();
-      }
+  if (type === "Engineer") {
+    questions.push({ type: "input", message: gitHubQuestion, name: "github" });
+  } else if (type === "Intern") {
+    questions.push({ type: "input", message: schoolQuestion, name: "school" });
+  }else{
+    questions.push({ type: "input", message: officeNumberQuestion, name: "officeNumber" });
+  }
+
+  questions.push({
+    type: "list",
+    message: "Would you like to add another team member?",
+    name: "addMembers",
+    choices: ["Yes", "No"],
+    default: "Yes",
   });
 
+  return questions;
+}
+
+function writeTeamFile(employeesToWrite){
+  fs.writeFile(outputPath, render(employeesToWrite), "utf8", (err) => {
+    if (err) throw err;
+
+    console.log("Team template successfully created");
+  });
+}
+
+init();
